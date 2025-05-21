@@ -1,40 +1,16 @@
 resource "aws_s3_bucket" "web" {
-  bucket = "plunder-cove-assets-bucket"
+  bucket = "plunder-cove-assets-${random_id.suffix.hex}"
+
+  tags = {
+    Name        = "PlunderCoveWeb"
+    Environment = "Dev"
+  }
+
   force_destroy = true
 }
 
-resource "aws_s3_bucket_ownership_controls" "web" {
-  bucket = aws_s3_bucket.web.id
-
-  rule {
-    object_ownership = "BucketOwnerEnforced"
-  }
-}
-
-resource "aws_s3_bucket_public_access_block" "web" {
-  bucket = aws_s3_bucket.web.id
-
-  block_public_acls       = true
-  ignore_public_acls      = true
-  block_public_policy     = false
-  restrict_public_buckets = false
-}
-
-resource "aws_s3_bucket_policy" "web_public" {
-  bucket = aws_s3_bucket.web.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid       = "PublicReadGetObject"
-        Effect    = "Allow"
-        Principal = "*"
-        Action    = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.web.arn}/*"
-      }
-    ]
-  })
+resource "random_id" "suffix" {
+  byte_length = 4
 }
 
 resource "aws_s3_bucket_website_configuration" "web" {
@@ -47,4 +23,26 @@ resource "aws_s3_bucket_website_configuration" "web" {
   error_document {
     key = "index.html"
   }
+}
+
+resource "aws_s3_bucket_public_access_block" "web" {
+  bucket = aws_s3_bucket.web.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+resource "aws_s3_bucket_policy" "web" {
+  bucket = aws_s3_bucket.web.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = "*"
+      Action = "s3:GetObject"
+      Resource = "${aws_s3_bucket.web.arn}/*"
+    }]
+  })
 }
