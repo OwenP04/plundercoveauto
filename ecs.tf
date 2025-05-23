@@ -1,4 +1,3 @@
-```hcl
 # --- Security Group for ECS and ALB ---
 resource "aws_security_group" "eb_sg" {
   name        = "plunder-eb-sg"
@@ -196,10 +195,3 @@ resource "aws_iam_role_policy" "ecs_execution_policy" {
 resource "aws_cloudwatch_log_group" "plunder_log_group" {
   name              = "/ecs/plunder-cove-web"
   retention_in_days = 7
-
-  tags = {
-    Project     = "PlunderCove"
-    Environment = "Production"
-  }
-}
-```
