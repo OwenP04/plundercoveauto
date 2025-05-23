@@ -182,44 +182,6 @@ resource "aws_instance" "plunder_ec2" {
 }
 
 # --- Application Load Balancer ---
-resource "aws_lb" "plunder_alb" {
-  name               = "PlunderCoveALB"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.plunder_sg.id]
-  subnets            = [aws_subnet.plunder_subnet.id, aws_subnet.plunder_subnet_b.id]
-
-  tags = {
-    Name = "PlunderCoveALB"
-  }
-}
-
-resource "aws_lb_target_group" "plunder_tg" {
-  name     = "PlunderCoveTG"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.plunder_vpc.id
-
-  health_check {
-    path                = "/"
-    interval            = 30
-    timeout             = 5
-    healthy_threshold   = 3
-    unhealthy_threshold = 3
-  }
-}
-
-resource "aws_lb_listener" "plunder_listener" {
-  load_balancer_arn = aws_lb.plunder_alb.arn
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.plunder_tg.arn
-  }
-}
-
 resource "aws_lb_target_group_attachment" "plunder_tg_attachment" {
   target_group_arn = aws_lb_target_group.plunder_tg.arn
   target_id        = aws_instance.plunder_ec2.id
