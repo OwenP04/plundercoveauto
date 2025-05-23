@@ -81,7 +81,7 @@
      internal           = false
      load_balancer_type = "application"
      security_groups    = [aws_security_group.eb_sg.id] # Reuse or create new SG
-     subnets           = [aws_subnet.public_subnet.id, aws_subnet.public_subnetb.id] # Replace with your subnet IDs
+     subnets           = [aws_subnet.public_subnet.id, aws_subnet.public_subnet_b.id] # Replace with your subnet IDs
 
      tags = {
        Project     = "PlunderCove"
