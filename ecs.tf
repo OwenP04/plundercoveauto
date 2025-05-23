@@ -55,7 +55,7 @@ resource "aws_ecs_service" "plunder_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = [aws_subnet.plunder_subnet_1.id, aws_subnet.plunder_subnet_2.id]
+    subnets          = [aws_subnet.public_subnet_a.id, aws_subnet.public_subnet_b.id]
     security_groups  = [aws_security_group.eb_sg.id]
     assign_public_ip = true
   }
@@ -80,7 +80,7 @@ resource "aws_lb" "plunder_alb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.eb_sg.id]
-  subnets           = [aws_subnet.plunder_subnet.id, aws_subnet.plunder_subnet_b.id]
+  subnets           = [aws_subnet.public_subnet_a.id, aws_subnet.public_subnet_b.id]
 
   tags = {
     Project     = "PlunderCove"
