@@ -24,7 +24,6 @@ resource "aws_subnet" "plunder_subnet_a" {
   }
 }
 
-# Additional Subnet for ALB (Multi-AZ)
 resource "aws_subnet" "plunder_subnet_b" {
   vpc_id                  = aws_vpc.plunder_vpc.id
   cidr_block              = "10.0.2.0/24"
@@ -60,7 +59,7 @@ resource "aws_route_table" "plunder_rt" {
 }
 
 resource "aws_route_table_association" "plunder_rta_a" {
-  subnet_id      = aws_subnet.plunder_subnet.id
+  subnet_id      = aws_subnet.plunder_subnet_a.id
   route_table_id = aws_route_table.plunder_rt.id
 }
 
@@ -142,7 +141,6 @@ resource "aws_key_pair" "plunder_key" {
   public_key = tls_private_key.plunder_key.public_key_openssh
 }
 
-# Save Private Key Locally
 resource "local_file" "plunder_key_file" {
   content  = tls_private_key.plunder_key.private_key_pem
   filename = "PlunderCoveKey.pem"
@@ -163,7 +161,7 @@ resource "aws_instance" "plunder_ec2" {
   instance_type          = "t3.micro"
   key_name               = aws_key_pair.plunder_key.key_name
   vpc_security_group_ids = [aws_security_group.plunder_sg.id]
-  subnet_id              = aws_subnet.plunder_subnet.id
+  subnet_id              = aws_subnet.plunder_subnet_a.id
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
   user_data = <<-EOF
@@ -181,7 +179,28 @@ resource "aws_instance" "plunder_ec2" {
   }
 }
 
-# --- Application Load Balancer ---
+# --- Application Load Balancer Target Group ---
+resource "aws_lb_target_group" "plunder_tg" {
+  name     = "plunder-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.plunder_vpc.id
+
+  health_check {
+    path                = "/"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    matcher             = "200"
+  }
+
+  tags = {
+    Name = "PlunderTG"
+  }
+}
+
+# --- Application Load Balancer Target Attachment ---
 resource "aws_lb_target_group_attachment" "plunder_tg_attachment" {
   target_group_arn = aws_lb_target_group.plunder_tg.arn
   target_id        = aws_instance.plunder_ec2.id
